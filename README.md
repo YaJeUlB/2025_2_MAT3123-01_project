@@ -105,9 +105,7 @@ This project demonstrates a simple and mathematically interpretable approach to 
 
 ---
 
-## 7. (Optional) Logs / Screenshots
-
-Including screenshots of terminal logs is fine as supplementary evidence. Recommended README pattern:
+## 7. Logs / Screenshots
 
 <summary>Training & evaluation logs (screenshots)</summary>
 
