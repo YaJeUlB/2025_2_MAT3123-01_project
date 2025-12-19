@@ -35,11 +35,9 @@ $$\mathbb{E}[\ell(g(x),y)\mid x\in U_\tau].$$
 At test time (label-free routing),
 
 $$
-h(x)=
-\begin{cases}
-\arg\max f(x), & x\notin U_\tau,\
-\arg\max g(x), & x\in U_\tau.
-\end{cases}
+h(x) =
+\arg\max f(x) \quad \text{if } x \notin U_\tau \\
+\arg\max g(x) \quad \text{if } x \in U_\tau
 $$
 
 ---
