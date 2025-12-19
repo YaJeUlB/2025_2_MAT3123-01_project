@@ -1,4 +1,3 @@
-import multiprocessing as mp
 from dataclasses import dataclass
 
 import torch
@@ -15,7 +14,6 @@ from torchvision import datasets, transforms
 class CFG:
     seed: int = 0
     device: str = "cpu"
-    num_workers: int = 0
 
     batch_size: int = 256
     epochs_base: int = 10
@@ -24,7 +22,7 @@ class CFG:
     lr_spec: float = 1e-4
 
     tau: float = 0.9
-    val_size: int = 20000  # FashionMNIST train=60000 -> 40k train_base, 20k val_gate
+    val_size: int = 10000  # FashionMNIST train=60000 -> 50k train_base, 10k val_gate
 
 
 # -----------------------------
@@ -212,12 +210,9 @@ def main():
     gen = torch.Generator().manual_seed(cfg.seed)
     train_base, val_gate = random_split(full_train, [train_size, val_size], generator=gen)
 
-    train_loader = DataLoader(train_base, batch_size=cfg.batch_size, shuffle=True,
-                              num_workers=cfg.num_workers, pin_memory=False)
-    val_loader = DataLoader(val_gate, batch_size=cfg.batch_size, shuffle=False,
-                            num_workers=cfg.num_workers, pin_memory=False)
-    test_loader = DataLoader(test_ds, batch_size=cfg.batch_size, shuffle=False,
-                             num_workers=cfg.num_workers, pin_memory=False)
+    train_loader = DataLoader(train_base, batch_size=cfg.batch_size, shuffle=True)
+    val_loader = DataLoader(val_gate, batch_size=cfg.batch_size, shuffle=False,)
+    test_loader = DataLoader(test_ds, batch_size=cfg.batch_size, shuffle=False)
 
     # 1) Train base model
     base = BaseCNN().to(cfg.device)
@@ -242,8 +237,7 @@ def main():
         return
 
     hard_subset = Subset(val_gate, hard_positions)
-    hard_loader = DataLoader(hard_subset, batch_size=cfg.batch_size, shuffle=True,
-                             num_workers=cfg.num_workers, pin_memory=False)
+    hard_loader = DataLoader(hard_subset, batch_size=cfg.batch_size, shuffle=True)
 
     # 3) Specialist = base model fine-tuned on low-conf subset
     spec = BaseCNN().to(cfg.device)
@@ -262,5 +256,4 @@ def main():
 
 
 if __name__ == "__main__":
-    mp.set_start_method("spawn", force=True)
     main()
