@@ -14,35 +14,31 @@ A standard classifier applies one decision rule uniformly, even though predictio
 
 ### Base classifier and confidence
 
-Let (f(x)\in\mathbb{R}^{10}) be the base CNN logits. Define
-[
-p(x)=\mathrm{softmax}(f(x)),\qquad \mathrm{conf}(x)=\max_i p_i(x).
-]
+Let $f(x)\in\mathbb{R}^{10}$ be the base CNN logits. Define
+
+$$p(x)=\mathrm{softmax}(f(x)),\qquad \mathrm{conf}(x)=\max_i p_i(x).$$
 
 ### Low-confidence set
 
-For a threshold (\tau\in(0,1)),
-[
-U_\tau = {x:\mathrm{conf}(x)<\tau}.
-]
+For a threshold $\tau\in(0,1)$,
+
+$$U_\tau = {x:\mathrm{conf}(x)<\tau}.$$
 
 ### Specialist training objective
 
-A specialist (g) is obtained by **fine-tuning** the base CNN on samples from a held-out validation subset that satisfy (x\in U_\tau). Conceptually, this targets the **conditional risk**
-[
-\mathbb{E}[\ell(g(x),y)\mid x\in U_\tau].
-]
+A specialist (g) is obtained by **fine-tuning** the base CNN on samples from a held-out validation subset that satisfy $x\in U_\tau$. Conceptually, this targets the **conditional risk**
+$$\mathbb{E}[\ell(g(x),y)\mid x\in U_\tau].$$
 
 ### Final decision rule
 
 At test time (label-free routing),
-[
+$$
 h(x)=
 \begin{cases}
 \arg\max f(x), & x\notin U_\tau,\
 \arg\max g(x), & x\in U_\tau.
 \end{cases}
-]
+$$
 
 ---
 
@@ -51,16 +47,16 @@ h(x)=
 * **Dataset:** Fashion-MNIST (60k train / 10k test)
 * **Split:** training set randomly split into:
 
-  * `train_base`: train the base model (f)
-  * `val_gate`: identify low-confidence samples and fine-tune specialist (g)
+  * `train_base`: train the base model $f$
+  * `val_gate`: identify low-confidence samples and fine-tune specialist $g$
 * **No leakage:** test set is used **only** for evaluation.
 * **Models:** BaseCNN; Specialist = BaseCNN initialized from base weights then fine-tuned on the low-confidence subset of `val_gate`.
-* **Metrics reported per (\tau):**
+* **Metrics reported per $\tau$:**
 
   * overall accuracy
-  * accuracy on (U_\tau) (low-confidence accuracy)
-  * accuracy on (U_\tau^c) (high-confidence accuracy)
-  * (\mu(U_\tau)): fraction of test samples in (U_\tau)
+  * accuracy on $U_\tau$ (low-confidence accuracy)
+  * accuracy on $U_\tau^c$ (high-confidence accuracy)
+  * $\mu(U_\tau)$: fraction of test samples in $U_\tau$
 
 ---
 
@@ -81,15 +77,15 @@ h(x)=
 | 0.95 | Base  | 0.9191      | 0.6575       | 0.9803        | 0.1895 |
 | 0.95 | Gated | **0.9279**  | **0.7040**   | 0.9803        | 0.1895 |
 
-**Key observation:** For every (\tau), the gated method improves **low-confidence accuracy** while keeping **high-confidence accuracy unchanged**, leading to consistent overall gains.
+**Key observation:** For every $\tau$, the gated method improves **low-confidence accuracy** while keeping **high-confidence accuracy unchanged**, leading to consistent overall gains.
 
 ---
 
 ## 4. Discussion
 
-* **Why it works:** The low-confidence region (U_\tau) contains systematically difficult inputs. Fine-tuning a specialist on this region approximates minimizing **conditional error** on (U_\tau), improving performance specifically where the base model is uncertain.
-* **No degradation on easy cases:** High-confidence accuracy remains identical for each (\tau), meaning the routing rule does not harm confident predictions.
-* **Effect of (\tau):** As (\tau) increases, (\mu(U_\tau)) grows (more samples routed to specialist), and low-confidence accuracy improves reliably under the specialist.
+* **Why it works:** The low-confidence region $U_\tau$ contains systematically difficult inputs. Fine-tuning a specialist on this region approximates minimizing **conditional error** on $U_\tau$, improving performance specifically where the base model is uncertain.
+* **No degradation on easy cases:** High-confidence accuracy remains identical for each $\tau$, meaning the routing rule does not harm confident predictions.
+* **Effect of $\tau$:** As $\tau$ increases, $\mu(U_\tau)$ grows (more samples routed to specialist), and low-confidence accuracy improves reliably under the specialist.
 
 ---
 
@@ -127,13 +123,13 @@ Including screenshots of terminal logs is fine as supplementary evidence. Recomm
 
 ## 8. Additional Experiment: Stronger Base Model (20 epochs)
 
-To study how base model strength affects the low-confidence region and the benefits of specialization, we additionally trained the base model for **20 epochs** with (\tau=0.9).
+To study how base model strength affects the low-confidence region and the benefits of specialization, we additionally trained the base model for **20 epochs** with $\tau=0.9$.
 
 | Setting                       | Model | Overall Acc | Low-Conf Acc | High-Conf Acc |  μ(Uτ) |
 | ----------------------------- | ----- | ----------: | -----------: | ------------: | -----: |
 | Base trained 20 epochs, τ=0.9 | Base  |      0.9235 |       0.5368 |        0.9553 | 0.0760 |
 | Base trained 20 epochs, τ=0.9 | Gated |  **0.9268** |   **0.5803** |        0.9553 | 0.0760 |
 
-This additional run still shows improvement on the low-confidence set and a higher overall accuracy, while the low-confidence region becomes smaller ((\mu(U_\tau)) decreases), consistent with the base model becoming more confident.
+This additional run still shows improvement on the low-confidence set and a higher overall accuracy, while the low-confidence region becomes smaller $(\mu(U_\tau)$ decreases), consistent with the base model becoming more confident.
 
 ---
