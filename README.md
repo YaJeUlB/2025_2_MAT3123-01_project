@@ -64,6 +64,10 @@ $$
 
 ## 3. Results
 
+Note: The base model f is fixed; changing τ only changes the confidence-based split (U_tau vs U_tau^c).  
+Therefore, the base overall accuracy stays the same across τ, while low/high-region accuracies and μ(Uτ) change.
+
+
 ### Results on Fashion-MNIST
 
 (“Gated” = Base + Specialist with routing by base confidence)
@@ -107,7 +111,7 @@ This project demonstrates a simple and mathematically interpretable approach to 
 
 ## 7. Logs / Screenshots
 
-<summary>Training & evaluation logs (screenshots)</summary>
+Training & evaluation logs (screenshots)
 
 ![tau=0.7](images/tau_0.7.png)
 
@@ -129,7 +133,7 @@ To study how base model strength affects the low-confidence region and the benef
 | Base trained 20 epochs, τ=0.9 | Base  |      0.9235 |       0.5368 |        0.9553 | 0.0760 |
 | Base trained 20 epochs, τ=0.9 | Gated |  **0.9268** |   **0.5803** |        0.9553 | 0.0760 |
 
-This additional run still shows improvement on the low-confidence set and a higher overall accuracy, while the low-confidence region becomes smaller $(\mu(U_\tau)$ decreases), consistent with the base model becoming more confident.
+This additional run still shows improvement on the low-confidence set and a higher overall accuracy, while the low-confidence region becomes smaller ($\mu(U_\tau)$ decreases), consistent with the base model becoming more confident.
 
 ![tau=0.9, epoch=20](images/epoch_20_tau_0.9.png)
 
