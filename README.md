@@ -27,11 +27,13 @@ $$U_\tau = {x:\mathrm{conf}(x)<\tau}.$$
 ### Specialist training objective
 
 A specialist (g) is obtained by **fine-tuning** the base CNN on samples from a held-out validation subset that satisfy $x\in U_\tau$. Conceptually, this targets the **conditional risk**
+
 $$\mathbb{E}[\ell(g(x),y)\mid x\in U_\tau].$$
 
 ### Final decision rule
 
 At test time (label-free routing),
+
 $$
 h(x)=
 \begin{cases}
