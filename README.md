@@ -36,7 +36,9 @@ At test time (label-free routing),
 
 $$
 h(x) =
-\arg\max f(x) \quad \text{if } x \notin U_\tau \\
+\arg\max f(x) \quad \text{if } x \notin U_\tau
+$$
+$$
 \arg\max g(x) \quad \text{if } x \in U_\tau
 $$
 
