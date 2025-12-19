@@ -109,15 +109,16 @@ This project demonstrates a simple and mathematically interpretable approach to 
 
 Including screenshots of terminal logs is fine as supplementary evidence. Recommended README pattern:
 
-<details>
 <summary>Training & evaluation logs (screenshots)</summary>
 
 ![tau=0.7](images/tau_0.7.png)
+
 ![tau=0.8](images/tau_0.8.png)
+
 ![tau=0.9](images/tau_0.9.png)
+
 ![tau=0.95](images/tau_0.95.png)
 
-</details>
 
 ---
 
@@ -131,5 +132,7 @@ To study how base model strength affects the low-confidence region and the benef
 | Base trained 20 epochs, τ=0.9 | Gated |  **0.9268** |   **0.5803** |        0.9553 | 0.0760 |
 
 This additional run still shows improvement on the low-confidence set and a higher overall accuracy, while the low-confidence region becomes smaller $(\mu(U_\tau)$ decreases), consistent with the base model becoming more confident.
+
+![tau=0.9, epoch=20](images/epoch_20_tau_0.9.png)
 
 ---
