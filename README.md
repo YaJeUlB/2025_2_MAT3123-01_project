@@ -109,7 +109,6 @@ This project demonstrates a simple and mathematically interpretable approach to 
 
 Including screenshots of terminal logs is fine as supplementary evidence. Recommended README pattern:
 
-```markdown
 <details>
 <summary>Training & evaluation logs (screenshots)</summary>
 
@@ -119,7 +118,6 @@ Including screenshots of terminal logs is fine as supplementary evidence. Recomm
 ![tau=0.95](images/tau_0.95.png)
 
 </details>
-```
 
 ---
 
