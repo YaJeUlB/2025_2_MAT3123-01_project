@@ -7,9 +7,7 @@ from torch.utils.data import DataLoader, random_split, Subset
 from torchvision import datasets, transforms
 
 
-# -----------------------------
-# Config
-# -----------------------------
+# config
 @dataclass
 class CFG:
     seed: int = 0
@@ -22,12 +20,10 @@ class CFG:
     lr_spec: float = 1e-4
 
     tau: float = 0.9
-    val_size: int = 10000  # FashionMNIST train=60000 -> 50k train_base, 10k val_gate
+    val_size: int = 10000  # FashionMNIST train=60000 -> 50000 train_base, 10000 val_gate
 
 
-# -----------------------------
-# Model
-# -----------------------------
+# model
 class BaseCNN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -37,7 +33,7 @@ class BaseCNN(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
         self.bn2 = nn.BatchNorm2d(64)
 
-        self.pool = nn.MaxPool2d(2, 2)  # 28->14
+        self.pool = nn.MaxPool2d(2, 2)
 
         self.conv3 = nn.Conv2d(64, 64, 3, padding=1)
         self.bn3 = nn.BatchNorm2d(64)
@@ -54,9 +50,7 @@ class BaseCNN(nn.Module):
         return self.fc2(x)
 
 
-# -----------------------------
-# Utilities
-# -----------------------------
+# utilities
 def set_seed(seed: int):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
@@ -82,9 +76,9 @@ def train_one_epoch(model: nn.Module, loader: DataLoader, opt: torch.optim.Optim
 @torch.no_grad()
 def eval_with_conf_split(model: nn.Module, loader: DataLoader, device: str, tau: float) -> dict:
     """
-    Evaluate model accuracy and also accuracy on:
-      - low-confidence set (conf < tau), where conf is computed from THIS model
-      - high-confidence set (conf >= tau)
+    evaluate model accuracy and also accuracy on:
+    - low-confidence set (conf < tau), where conf is computed from this model
+    - high-confidence set (conf >= tau)
     """
     model.eval()
     correct, total = 0, 0
@@ -123,7 +117,7 @@ def eval_with_conf_split(model: nn.Module, loader: DataLoader, device: str, tau:
 @torch.no_grad()
 def low_conf_indices_on_subset(base: nn.Module, subset_loader: DataLoader, device: str, tau: float) -> list[int]:
     """
-    Return positions (0..len(subset)-1) in a subset where base confidence < tau.
+    Indices in the validation subset where the base model is not confident
     """
     base.eval()
     idxs: list[int] = []
@@ -145,10 +139,7 @@ def low_conf_indices_on_subset(base: nn.Module, subset_loader: DataLoader, devic
 @torch.no_grad()
 def eval_gated(base: nn.Module, spec: nn.Module, loader: DataLoader, device: str, tau: float) -> dict:
     """
-    Gate by BASE confidence:
-      if base_conf >= tau -> base prediction
-      else -> specialist prediction
-    Report low/high split defined by base_conf.
+    decide predictions based on base model confidence
     """
     base.eval()
     spec.eval()
@@ -192,9 +183,7 @@ def eval_gated(base: nn.Module, spec: nn.Module, loader: DataLoader, device: str
     }
 
 
-# -----------------------------
-# Main
-# -----------------------------
+# main
 def main():
     cfg = CFG()
     set_seed(cfg.seed)
@@ -204,7 +193,7 @@ def main():
     full_train = datasets.FashionMNIST("./data", train=True, download=True, transform=transform)
     test_ds = datasets.FashionMNIST("./data", train=False, download=True, transform=transform)
 
-    # Split train into train_base and val_gate
+    # 0) split train into train_base and val_gate
     val_size = cfg.val_size
     train_size = len(full_train) - val_size
     gen = torch.Generator().manual_seed(cfg.seed)
@@ -214,7 +203,7 @@ def main():
     val_loader = DataLoader(val_gate, batch_size=cfg.batch_size, shuffle=False,)
     test_loader = DataLoader(test_ds, batch_size=cfg.batch_size, shuffle=False)
 
-    # 1) Train base model
+    # 1) train base model
     base = BaseCNN().to(cfg.device)
     opt_base = torch.optim.Adam(base.parameters(), lr=cfg.lr_base)
 
@@ -222,13 +211,13 @@ def main():
         loss = train_one_epoch(base, train_loader, opt_base, cfg.device)
         print(f"[Base] Epoch {ep}/{cfg.epochs_base} | loss={loss:.4f}")
 
-    # Evaluate base on test
+    # 2) evaluate base on test
     base_stats = eval_with_conf_split(base, test_loader, cfg.device, tau=cfg.tau)
     print("\n=== Base (test, conf split by base) ===")
     for k, v in base_stats.items():
         print(f"{k:>12}: {v:.4f}" if isinstance(v, float) else f"{k:>12}: {v}")
 
-    # 2) Build low-confidence subset from val_gate (using base confidence)
+    # 3) build low-confidence subset from val_gate (using base confidence)
     hard_positions = low_conf_indices_on_subset(base, val_loader, cfg.device, cfg.tau)
     print(f"\nLow-conf set size (val_gate): {len(hard_positions)} / {len(val_gate)}  (tau={cfg.tau})")
 
@@ -239,7 +228,7 @@ def main():
     hard_subset = Subset(val_gate, hard_positions)
     hard_loader = DataLoader(hard_subset, batch_size=cfg.batch_size, shuffle=True)
 
-    # 3) Specialist = base model fine-tuned on low-conf subset
+    # 4) specialist = base model fine-tuned on low-conf subset
     spec = BaseCNN().to(cfg.device)
     spec.load_state_dict(base.state_dict())
     opt_spec = torch.optim.Adam(spec.parameters(), lr=cfg.lr_spec)
@@ -248,7 +237,7 @@ def main():
         loss = train_one_epoch(spec, hard_loader, opt_spec, cfg.device)
         print(f"[Spec] Epoch {ep}/{cfg.epochs_spec} | loss={loss:.4f}")
 
-    # 4) Gated evaluation on test (gate by base confidence)
+    # 5) gated evaluation on test (gate by base confidence)
     gated_stats = eval_gated(base, spec, test_loader, cfg.device, tau=cfg.tau)
     print("\n=== Gated Base+Specialist (test, gate by base conf) ===")
     for k, v in gated_stats.items():
